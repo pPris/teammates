@@ -742,7 +742,7 @@ public class FeedbackQuestionsLogicTest extends BaseLogicTest {
         assertEquals(Arrays.asList("student1 In Course1</td></div>'\"",
                 "student2 In Course1",
                 "student3 In Course1",
-                "student4 In Course1"),
+                "student4 In Course1"), // why so many hard coded strings, what do they test
                 ((FeedbackMcqQuestionDetails) fqa.getQuestionDetails()).getMcqChoices());
 
         feedbackMcqQuestionDetails.setMcqChoices(new ArrayList<>());
@@ -893,6 +893,7 @@ public class FeedbackQuestionsLogicTest extends BaseLogicTest {
     }
 
     @Test
+    // what map
     public void testBuildCompleteGiverRecipientMap_instructorQuestion_shouldBuildMapCorrectly() {
         CourseRoster courseRoster = new CourseRoster(
                 studentsLogic.getStudentsForCourse("idOfTypicalCourse1"),

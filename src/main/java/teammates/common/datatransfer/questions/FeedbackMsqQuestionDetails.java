@@ -201,6 +201,7 @@ public class FeedbackMsqQuestionDetails extends FeedbackQuestionDetails {
     public List<String> validateResponsesDetails(List<FeedbackResponseDetails> responses, int numRecipients) {
         List<String> errors = new ArrayList<>();
 
+        // what does other mean
         for (FeedbackResponseDetails response : responses) {
             FeedbackMsqResponseDetails details = (FeedbackMsqResponseDetails) response;
 

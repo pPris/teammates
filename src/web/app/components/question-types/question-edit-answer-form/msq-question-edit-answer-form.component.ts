@@ -21,6 +21,7 @@ export class MsqQuestionEditAnswerFormComponent
 
   readonly NO_VALUE: number = NO_VALUE;
   isMsqOptionSelected: boolean[] = [];
+  lastSelectedOption: number; // TODO: reset to -1 if other option or none of the above was selected
 
   @ViewChild('inputTextBoxOther') inputTextBoxOther?: ElementRef;
 
@@ -48,15 +49,16 @@ export class MsqQuestionEditAnswerFormComponent
   /**
    * Updates the answers to include/exclude the Msq option specified by the index.
    */
-  updateSelectedAnswers(index: number): void {
+  updateSelectedAnswers(index: number, $event : MouseEvent): void {
     let newAnswers: string[] = [];
     if (!this.isNoneOfTheAboveEnabled) {
       newAnswers = this.responseDetails.answers.slice();
     }
     const indexInResponseArray: number = this.responseDetails.answers.indexOf(this.questionDetails.msqChoices[index]);
     if (indexInResponseArray > -1) {
-      newAnswers.splice(indexInResponseArray, 1);
+      newAnswers.splice(indexInResponseArray, 1); // finds the index and remove the option ('unselect')
     } else {
+      // add the option
       newAnswers.unshift(this.questionDetails.msqChoices[index]);
     }
 
@@ -81,7 +83,7 @@ export class MsqQuestionEditAnswerFormComponent
       }, 0);
     } else {
       // remove other answer (last element) from the answer list
-      fieldsToUpdate.answers.splice(-1, 1);
+      fieldsToUpdate.answers.splice(-1, 1); // what's happening here? does the answer list have a restricted number of elements
       fieldsToUpdate.otherFieldContent = '';
     }
     this.triggerResponseDetailsChangeBatch(fieldsToUpdate);
@@ -90,7 +92,7 @@ export class MsqQuestionEditAnswerFormComponent
   /**
    * Updates other answer field.
    */
-  updateOtherAnswerField($event: string): void {
+  updateOtherAnswerField($event: string): void { // $event is angular specific
     const fieldsToUpdate: any = {};
     // we shall update both the other field content and the answer list
     fieldsToUpdate.otherFieldContent = $event;

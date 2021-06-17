@@ -32,7 +32,7 @@ export class UploadEditProfilePictureModalComponent implements OnInit {
    */
   blobToBase64Image(image: Blob): void {
     const reader: FileReader = new FileReader();
-    reader.addEventListener('load', () => {
+    reader.addEventListener('load', () => { // note here's a listener
       if (reader.result) {
         this.imageCropper.imageBase64 = reader.result as string;
       }
