@@ -21,7 +21,8 @@ export class MsqQuestionEditAnswerFormComponent
 
   readonly NO_VALUE: number = NO_VALUE;
   isMsqOptionSelected: boolean[] = [];
-  lastSelectedOption: number; // TODO: reset to -1 if other option or none of the above was selected
+  lastSelectedOptionIdx: number = -1; // TODO: reset to -1 if other option or none of the above was selected
+  isLastActionSelect: boolean = false;
 
   @ViewChild('inputTextBoxOther') inputTextBoxOther?: ElementRef;
 
@@ -49,20 +50,120 @@ export class MsqQuestionEditAnswerFormComponent
   /**
    * Updates the answers to include/exclude the Msq option specified by the index.
    */
-  updateSelectedAnswers(index: number, $event : MouseEvent): void {
+  updateSelectedAnswers(index: number, $event : string): void {
     let newAnswers: string[] = [];
+    console.log(this.lastSelectedOptionIdx)
+
     if (!this.isNoneOfTheAboveEnabled) {
       newAnswers = this.responseDetails.answers.slice();
     }
-    const indexInResponseArray: number = this.responseDetails.answers.indexOf(this.questionDetails.msqChoices[index]);
-    if (indexInResponseArray > -1) {
-      newAnswers.splice(indexInResponseArray, 1); // finds the index and remove the option ('unselect')
+
+    const selectedIndexInResponseArray: number = this.responseDetails.answers.indexOf(this.questionDetails.msqChoices[index]); // determines if select or deselect // should change this to a boolean so logic is clearer
+
+    /*
+    console.log("curr", selectedIndexInResponseArray);
+    if (selectedIndexInResponseArray > -1) { // curr = deselect
+        if ($event.shiftKey && !this.isLastActionSelect) {
+            for (let i = this.lastSelectedOptionIdx; i < index; i++) {
+                const j = this.responseDetails.answers.indexOf(this.questionDetails.msqChoices[i])
+                newAnswers.splice(j, 1);
+            }
+        } else {
+            newAnswers.splice(selectedIndexInResponseArray, 1); // finds the index and remove the option ('unselect')
+        }
+        this.isLastActionSelect = false;
     } else {
       // add the option
-      newAnswers.unshift(this.questionDetails.msqChoices[index]);
+        // todo doesn't work for reverse direction (infinite loop)
+
+       if ($event.shiftKey && this.isLastActionSelect) {
+          for (let i = this.lastSelectedOptionIdx; i < index; i++) {
+              console.log("unshifting", i, newAnswers);
+              newAnswers.unshift(this.questionDetails.msqChoices[i]);
+          }
+      } else {
+        console.log("unshifting", index);
+          newAnswers.unshift(this.questionDetails.msqChoices[index]);
+      }
+      this.isLastActionSelect = true;
+    }
+    */
+
+    const isCurrActionSelect = (selectedIndexInResponseArray === -1);
+
+    console.log("shiftKey", $event.shiftKey, "isLastAction", this.isLastActionSelect, "curr", isCurrActionSelect) // src needed
+    console.log("previous deets", this.responseDetails.answers);
+
+    if ($event.shiftKey && (this.isLastActionSelect === isCurrActionSelect)) {
+        let i = Math.min(index, this.lastSelectedOptionIdx),
+            l = Math.max(index, this.lastSelectedOptionIdx);
+
+        if (isCurrActionSelect) {
+            for (; i < l; i++) {
+                if (i === this.lastSelectedOptionIdx) continue; // without this you're double performing the last action
+                console.log("unshift", this.questionDetails.msqChoices[i])
+                newAnswers.unshift(this.questionDetails.msqChoices[i]);
+            }
+            this.isLastActionSelect = true;
+        } else {
+            for (let j; i < l; i++) {
+                    if (i === this.lastSelectedOptionIdx) continue; // without this you're double performing the last action
+                j = this.responseDetails.answers.indexOf(this.questionDetails.msqChoices[i])
+                newAnswers.splice(j, 1);
+                console.log("splice", j, this.responseDetails);
+            }
+            this.isLastActionSelect = false;
+        }
+
+        /*
+        mistake in:
+        / / / /
+        / x / /
+        / x / x <- everything switches off when it should be just one more off
+
+        */
+
+        // gmail supports one more thing
+        /*
+            if
+            [][][][] click 1st
+            [!][][][] shift click 4th
+            [!][!][!][!] shift click 2nd
+            [!][][][] google does this
+        */
+
+
+    } else {
+        if (isCurrActionSelect) {
+            newAnswers.unshift(this.questionDetails.msqChoices[index]);
+            this.isLastActionSelect = true;
+        } else {
+            // remove corresponding response text
+            newAnswers.splice(selectedIndexInResponseArray, 1);
+            this.isLastActionSelect = false;
+        }
     }
 
+    console.log("now", newAnswers);
+
+
+    this.lastSelectedOptionIdx = index;
+
     this.triggerResponseDetailsChange('answers', newAnswers);
+
+    /*
+    if shiftkey then
+        curr = deselect &&
+        prev = deselect
+            then loop through indexes of and splice away
+            return
+        curr !== prev
+            then ignore, behave as if no shiftkey (go to next)
+        curr == prev == select action
+            then loop through indexes
+            unshift
+
+    */
   }
 
   /**

@@ -4,7 +4,7 @@
     <div class="check-box" *ngFor="let num of questionDetails.msqChoices; let i = index;">
       <label class="margin-right-15px">
         <input type="checkbox" class="margin-right-15px" [checked]="isMsqOptionSelected[i]"
-               (click)="updateSelectedAnswers(i, $event.keyCode)" [disabled]="isDisabled">
+               (click)="updateSelectedAnswers(i, $event)" [disabled]="isDisabled">
         <strong>{{ questionDetails.msqChoices[i] }}</strong>
       </label>
     </div>
