@@ -62,9 +62,9 @@ export class MsqQuestionEditAnswerFormComponent
     const isCurrActionSelect = (selectedIndexInResponseArray === -1);
 
     // src: https://stackoverflow.com/questions/37078709/angular-2-check-if-shift-key-is-down-when-an-element-is-clicked?rq=1
-    console.log("shiftKey", $event.shiftKey, "isLastAction", this.isLastActionSelect, "curr", isCurrActionSelect)
-    console.log("previous deets", this.responseDetails.answers);
 
+    /* to keep things simple, we enable shift select functionality only when
+    previous action and curr action are both select or are both deselect */
     if ($event.shiftKey && (this.isLastActionSelect === isCurrActionSelect)) {
         let i = Math.min(index, this.lastSelectedOptionIdx),
             l = Math.max(index, this.lastSelectedOptionIdx);
@@ -75,7 +75,6 @@ export class MsqQuestionEditAnswerFormComponent
 
                 if (this.responseDetails.answers.indexOf(this.questionDetails.msqChoices[i]) !== -1) continue; // without this you will be double selecting an item
 
-                console.log("unshift", this.questionDetails.msqChoices[i])
                 newAnswers.unshift(this.questionDetails.msqChoices[i]);
             }
             this.isLastActionSelect = true;
@@ -87,22 +86,10 @@ export class MsqQuestionEditAnswerFormComponent
                 if (j === -1) continue; // an option in the middle of this loop might already have been deselected. without this if, you'll be deselecting a random item at the end of the array.
 
                 newAnswers.splice(j, 1);
-                console.log("splice", j, this.responseDetails);
             }
             this.isLastActionSelect = false;
         }
-
-        // gmail supports one more thing
-        /*
-            if
-            [][][][] click 1st
-            [!][][][] shift click 4th
-            [!][!][!][!] shift click 2nd
-            [!][][][] google does this
-        */
-
-
-    } else {
+    } else { // no shift key functionality. i.e. perform the operations for one individual msqChoice
         if (isCurrActionSelect) {
             newAnswers.unshift(this.questionDetails.msqChoices[index]);
             this.isLastActionSelect = true;
@@ -113,25 +100,9 @@ export class MsqQuestionEditAnswerFormComponent
         }
     }
 
-    console.log("now", newAnswers);
-
     this.lastSelectedOptionIdx = index;
 
     this.triggerResponseDetailsChange('answers', newAnswers);
-
-    /*
-    if shiftkey then
-        curr = deselect &&
-        prev = deselect
-            then loop through indexes of and splice away
-            return
-        curr !== prev
-            then ignore, behave as if no shiftkey (go to next)
-        curr == prev == select action
-            then loop through indexes
-            unshift
-
-    */
   }
 
   /**
