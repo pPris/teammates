@@ -52,7 +52,6 @@ export class MsqQuestionEditAnswerFormComponent
    */
   updateSelectedAnswers(index: number, $event : string): void {
     let newAnswers: string[] = [];
-    console.log(this.lastSelectedOptionIdx)
 
     if (!this.isNoneOfTheAboveEnabled) {
       newAnswers = this.responseDetails.answers.slice();
@@ -60,38 +59,10 @@ export class MsqQuestionEditAnswerFormComponent
 
     const selectedIndexInResponseArray: number = this.responseDetails.answers.indexOf(this.questionDetails.msqChoices[index]); // determines if select or deselect // should change this to a boolean so logic is clearer
 
-    /*
-    console.log("curr", selectedIndexInResponseArray);
-    if (selectedIndexInResponseArray > -1) { // curr = deselect
-        if ($event.shiftKey && !this.isLastActionSelect) {
-            for (let i = this.lastSelectedOptionIdx; i < index; i++) {
-                const j = this.responseDetails.answers.indexOf(this.questionDetails.msqChoices[i])
-                newAnswers.splice(j, 1);
-            }
-        } else {
-            newAnswers.splice(selectedIndexInResponseArray, 1); // finds the index and remove the option ('unselect')
-        }
-        this.isLastActionSelect = false;
-    } else {
-      // add the option
-        // todo doesn't work for reverse direction (infinite loop)
-
-       if ($event.shiftKey && this.isLastActionSelect) {
-          for (let i = this.lastSelectedOptionIdx; i < index; i++) {
-              console.log("unshifting", i, newAnswers);
-              newAnswers.unshift(this.questionDetails.msqChoices[i]);
-          }
-      } else {
-        console.log("unshifting", index);
-          newAnswers.unshift(this.questionDetails.msqChoices[index]);
-      }
-      this.isLastActionSelect = true;
-    }
-    */
-
     const isCurrActionSelect = (selectedIndexInResponseArray === -1);
 
-    console.log("shiftKey", $event.shiftKey, "isLastAction", this.isLastActionSelect, "curr", isCurrActionSelect) // src needed
+    // src: https://stackoverflow.com/questions/37078709/angular-2-check-if-shift-key-is-down-when-an-element-is-clicked?rq=1
+    console.log("shiftKey", $event.shiftKey, "isLastAction", this.isLastActionSelect, "curr", isCurrActionSelect)
     console.log("previous deets", this.responseDetails.answers);
 
     if ($event.shiftKey && (this.isLastActionSelect === isCurrActionSelect)) {
