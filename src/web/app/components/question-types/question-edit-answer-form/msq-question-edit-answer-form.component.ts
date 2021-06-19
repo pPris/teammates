@@ -50,7 +50,7 @@ export class MsqQuestionEditAnswerFormComponent
   /**
    * Updates the answers to include/exclude the Msq option specified by the index.
    */
-  updateSelectedAnswers(index: number, $event : string): void {
+  updateSelectedAnswers(index: number, $event: Event): void {
     let newAnswers: string[] = [];
 
     if (!this.isNoneOfTheAboveEnabled) {
