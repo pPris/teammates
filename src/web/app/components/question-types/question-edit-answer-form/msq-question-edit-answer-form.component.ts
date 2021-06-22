@@ -123,7 +123,7 @@ export class MsqQuestionEditAnswerFormComponent
       }, 0);
     } else {
       // remove other answer (last element) from the answer list
-      fieldsToUpdate.answers.splice(-1, 1); // what's happening here? does the answer list have a restricted number of elements
+      fieldsToUpdate.answers.splice(-1, 1); // what is happening here? does the answer list have a restricted number of elements
       fieldsToUpdate.otherFieldContent = '';
     }
     this.lastSelectedOptionIdx = -1;
