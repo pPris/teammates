@@ -206,6 +206,9 @@ public final class FeedbackQuestionsLogic {
         return getFeedbackQuestionsForCreatorInstructor(fsa);
     }
 
+    /**
+     * Gets the list of feedback questions whose giver is the creator of the feedback session.
+     */
     public List<FeedbackQuestionAttributes> getFeedbackQuestionsForCreatorInstructor(
                                     FeedbackSessionAttributes fsa) {
 
@@ -272,6 +275,9 @@ public final class FeedbackQuestionsLogic {
                 || fqDb.hasFeedbackQuestionsForGiverType(feedbackSessionName, courseId, FeedbackParticipantType.TEAMS);
     }
 
+    /**
+     * Gets the email-name mapping of recipients for the given question for the given giver.
+     */
     Map<String, String> getRecipientsForQuestion(FeedbackQuestionAttributes question, String giver)
             throws EntityDoesNotExistException {
 
@@ -489,17 +495,15 @@ public final class FeedbackQuestionsLogic {
     /**
      * Builds a complete giver to recipient map for a {@code relatedQuestion}.
      *
-     * @param feedbackSession The feedback session that contains the question
      * @param relatedQuestion The question to be considered
      * @param courseRoster the roster in the course
      * @return a map from giver to recipient for the question.
      */
     public Map<String, Set<String>> buildCompleteGiverRecipientMap(
-            FeedbackSessionAttributes feedbackSession, FeedbackQuestionAttributes relatedQuestion,
-            CourseRoster courseRoster) {
+            FeedbackQuestionAttributes relatedQuestion, CourseRoster courseRoster) {
         Map<String, Set<String>> completeGiverRecipientMap = new HashMap<>();
 
-        List<String> possibleGivers = getPossibleGivers(feedbackSession, relatedQuestion, courseRoster);
+        List<String> possibleGivers = getPossibleGivers(relatedQuestion, courseRoster);
         for (String possibleGiver : possibleGivers) {
             switch (relatedQuestion.getGiverType()) {
             case STUDENTS:
@@ -542,7 +546,6 @@ public final class FeedbackQuestionsLogic {
      * @return a list of giver identifier
      */
     private List<String> getPossibleGivers(
-            FeedbackSessionAttributes feedbackSession,
             FeedbackQuestionAttributes fqa, CourseRoster courseRoster) {
         FeedbackParticipantType giverType = fqa.getGiverType();
         List<String> possibleGivers = new ArrayList<>();
@@ -564,6 +567,8 @@ public final class FeedbackQuestionsLogic {
             possibleGivers = new ArrayList<>(courseRoster.getTeamToMembersTable().keySet());
             break;
         case SELF:
+            FeedbackSessionAttributes feedbackSession =
+                    fsLogic.getFeedbackSession(fqa.getFeedbackSessionName(), fqa.getCourseId());
             possibleGivers = Collections.singletonList(feedbackSession.getCreatorEmail());
             break;
         default:
@@ -697,6 +702,9 @@ public final class FeedbackQuestionsLogic {
         return giverTeam;
     }
 
+    /**
+     * Returns true if the feedback question has been fully answered by the given user.
+     */
     public boolean isQuestionFullyAnsweredByUser(FeedbackQuestionAttributes question, String email)
             throws EntityDoesNotExistException {
 
@@ -839,34 +847,6 @@ public final class FeedbackQuestionsLogic {
                 }
             }
         }
-    }
-
-    /**
-     * Gets the number of generated options for MCQ-type and MSQ-type question.
-     */
-    public int getNumOfGeneratedChoicesForParticipantType(String courseId, FeedbackParticipantType participantType) {
-        if (participantType == FeedbackParticipantType.STUDENTS
-                || participantType == FeedbackParticipantType.STUDENTS_EXCLUDING_SELF) {
-            List<StudentAttributes> studentList = studentsLogic.getStudentsForCourse(courseId);
-            return studentList.size() - (participantType == FeedbackParticipantType.STUDENTS ? 0 : 1);
-        }
-
-        if (participantType == FeedbackParticipantType.TEAMS
-                || participantType == FeedbackParticipantType.TEAMS_EXCLUDING_SELF) {
-            try {
-                List<String> teams = coursesLogic.getTeamsForCourse(courseId);
-                return teams.size() - (participantType == FeedbackParticipantType.TEAMS ? 0 : 1);
-            } catch (EntityDoesNotExistException e) {
-                assert false : "Course disappeared";
-            }
-        }
-
-        if (participantType == FeedbackParticipantType.INSTRUCTORS) {
-            List<InstructorAttributes> instructorList = instructorsLogic.getInstructorsForCourse(courseId);
-            return instructorList.size();
-        }
-
-        return 0;
     }
 
 }

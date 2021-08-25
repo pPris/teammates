@@ -12,7 +12,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 
 import teammates.common.exception.ActionMappingException;
-import teammates.common.exception.TeammatesException;
 import teammates.common.util.Const.CronJobURIs;
 import teammates.common.util.Const.ResourceURIs;
 import teammates.common.util.Const.TaskQueue;
@@ -20,9 +19,9 @@ import teammates.common.util.Const.TaskQueue;
 /**
  * Generates the matching {@link Action} for a given URI and request method.
  */
-public class ActionFactory {
+public final class ActionFactory {
 
-    protected static final Map<String, Map<String, Class<? extends Action>>> ACTION_MAPPINGS = new HashMap<>();
+    static final Map<String, Map<String, Class<? extends Action>>> ACTION_MAPPINGS = new HashMap<>();
 
     private static final String GET = HttpGet.METHOD_NAME;
     private static final String POST = HttpPost.METHOD_NAME;
@@ -133,6 +132,8 @@ public class ActionFactory {
         map(CronJobURIs.AUTOMATED_FEEDBACK_CLOSED_REMINDERS, GET, FeedbackSessionClosedRemindersAction.class);
         map(CronJobURIs.AUTOMATED_FEEDBACK_CLOSING_REMINDERS, GET, FeedbackSessionClosingRemindersAction.class);
         map(CronJobURIs.AUTOMATED_FEEDBACK_PUBLISHED_REMINDERS, GET, FeedbackSessionPublishedRemindersAction.class);
+        map(CronJobURIs.AUTOMATED_FEEDBACK_OPENING_SOON_REMINDERS, GET,
+                FeedbackSessionOpeningSoonRemindersAction.class);
 
         // Task queue workers; use POST request
         // Reference: https://cloud.google.com/tasks/docs/creating-appengine-tasks
@@ -148,7 +149,13 @@ public class ActionFactory {
         map(TaskQueue.INSTRUCTOR_COURSE_JOIN_EMAIL_WORKER_URL, POST, InstructorCourseJoinEmailWorkerAction.class);
         map(TaskQueue.SEND_EMAIL_WORKER_URL, POST, SendEmailWorkerAction.class);
         map(TaskQueue.STUDENT_COURSE_JOIN_EMAIL_WORKER_URL, POST, StudentCourseJoinEmailWorkerAction.class);
+        map(TaskQueue.INSTRUCTOR_SEARCH_INDEXING_WORKER_URL, POST, InstructorSearchIndexingWorkerAction.class);
+        map(TaskQueue.STUDENT_SEARCH_INDEXING_WORKER_URL, POST, StudentSearchIndexingWorkerAction.class);
 
+    }
+
+    private ActionFactory() {
+        // prevent initialization
     }
 
     private static void map(String uri, String method, Class<? extends Action> actionClass) {
@@ -158,7 +165,7 @@ public class ActionFactory {
     /**
      * Returns the matching {@link Action} object for the URI and method in {@code req}.
      */
-    public Action getAction(HttpServletRequest req, String method) throws ActionMappingException {
+    public static Action getAction(HttpServletRequest req, String method) throws ActionMappingException {
         String uri = req.getRequestURI();
         if (uri.contains(";")) {
             uri = uri.split(";")[0];
@@ -166,7 +173,7 @@ public class ActionFactory {
         return getAction(uri, method);
     }
 
-    private Action getAction(String uri, String method) throws ActionMappingException {
+    private static Action getAction(String uri, String method) throws ActionMappingException {
         if (!ACTION_MAPPINGS.containsKey(uri)) {
             throw new ActionMappingException("Resource with URI " + uri + " is not found.", HttpStatus.SC_NOT_FOUND);
         }
@@ -182,8 +189,7 @@ public class ActionFactory {
         try {
             return controllerClass.newInstance();
         } catch (Exception e) {
-            assert false : "Could not create the action for " + uri + ": "
-                    + TeammatesException.toStringWithStackTrace(e);
+            assert false : "Could not create the action for " + uri;
             return null;
         }
     }

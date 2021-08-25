@@ -8,10 +8,7 @@ import teammates.common.datatransfer.attributes.FeedbackQuestionAttributes;
 import teammates.common.datatransfer.attributes.FeedbackSessionAttributes;
 import teammates.common.datatransfer.attributes.InstructorAttributes;
 import teammates.common.datatransfer.attributes.StudentAttributes;
-import teammates.common.exception.EntityDoesNotExistException;
-import teammates.common.exception.InvalidParametersException;
 import teammates.common.util.Const;
-import teammates.common.util.StringHelper;
 import teammates.ui.output.FeedbackQuestionRecipientsData;
 import teammates.ui.request.Intent;
 
@@ -52,7 +49,7 @@ public class GetFeedbackQuestionRecipientsActionTest extends BaseActionTest<GetF
     }
 
     @Override
-    protected void testExecute() throws Exception {
+    protected void testExecute() {
         // See independent test cases
     }
 
@@ -164,13 +161,12 @@ public class GetFeedbackQuestionRecipientsActionTest extends BaseActionTest<GetF
 
     @Test
     @Override
-    protected void testAccessControl() throws Exception {
+    protected void testAccessControl() {
         //see independent test cases
     }
 
     @Test
-    protected void testAccessControl_studentSubmission()
-            throws EntityDoesNotExistException, InvalidParametersException {
+    protected void testAccessControl_studentSubmission() throws Exception {
         // Use typical bundle for testing access control because we want to make the login account consistent
         // with "high-level" and "mid-level" access control tests, although accounts are same in two bundles
         useTypicalDataBundle();
@@ -221,7 +217,7 @@ public class GetFeedbackQuestionRecipientsActionTest extends BaseActionTest<GetF
                 logic.getStudentForEmail(student3InCourse1.getCourse(), student3InCourse1.getEmail());
         String[] unregisteredStudentSubmissionParams =
                 generateParameters(firstSessionInCourse1, 2, Intent.STUDENT_SUBMISSION,
-                        StringHelper.encrypt(unregisteredStudent.getKey()), "", "");
+                        unregisteredStudent.getEncryptedKey(), "", "");
         verifyAccessibleWithoutLogin(unregisteredStudentSubmissionParams);
 
         ______TS("Access with correct but used regKey, should not be accessible by anyone");
@@ -229,7 +225,7 @@ public class GetFeedbackQuestionRecipientsActionTest extends BaseActionTest<GetF
                 logic.getStudentForEmail(student1InCourse1.getCourse(), student1InCourse1.getEmail());
         String[] registeredStudentSubmissionParams =
                 generateParameters(firstSessionInCourse1, 2, Intent.STUDENT_SUBMISSION,
-                        StringHelper.encrypt(registeredStudent.getKey()), "", "");
+                        registeredStudent.getEncryptedKey(), "", "");
         verifyCannotAccess(registeredStudentSubmissionParams);
 
         logoutUser();
@@ -269,8 +265,7 @@ public class GetFeedbackQuestionRecipientsActionTest extends BaseActionTest<GetF
     }
 
     @Test
-    protected void testAccessControl_instructorSubmission()
-            throws InvalidParametersException, EntityDoesNotExistException {
+    protected void testAccessControl_instructorSubmission() throws Exception {
         ______TS("Instructor access instructor's question, should be accessible");
         String[] instructorSubmissionParams =
                 generateParameters(firstSessionInCourse1, 3, Intent.INSTRUCTOR_SUBMISSION, "", "", "");

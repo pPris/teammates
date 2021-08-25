@@ -69,10 +69,19 @@ import teammates.ui.request.Intent;
  */
 public abstract class AbstractBackDoor {
 
+    /**
+     * Gets the URL of the back-end.
+     */
     protected abstract String getAppUrl();
 
+    /**
+     * Gets the backdoor key used to authenticate with the back-end.
+     */
     protected abstract String getBackdoorKey();
 
+    /**
+     * Gets the CSRF key used to authenticate with the back-end.
+     */
     protected abstract String getCsrfKey();
 
     /**
@@ -209,8 +218,8 @@ public abstract class AbstractBackDoor {
     }
 
     private void addAuthKeys(HttpRequestBase request) {
-        request.addHeader("Backdoor-Key", getBackdoorKey());
-        request.addHeader("CSRF-Key", getCsrfKey());
+        request.addHeader(Const.HeaderNames.BACKDOOR_KEY, getBackdoorKey());
+        request.addHeader(Const.HeaderNames.CSRF_KEY, getCsrfKey());
     }
 
     /**

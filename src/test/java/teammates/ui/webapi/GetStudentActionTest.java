@@ -60,7 +60,7 @@ public class GetStudentActionTest extends BaseActionTest<GetStudentAction> {
 
     @Test
     @Override
-    protected void testExecute() throws Exception {
+    protected void testExecute() {
 
         ______TS("Failure Case: No Course ID in params");
 
@@ -102,7 +102,7 @@ public class GetStudentActionTest extends BaseActionTest<GetStudentAction> {
 
         submissionParams = new String[] {
                 Const.ParamsNames.COURSE_ID, unregStudent.getCourse(),
-                Const.ParamsNames.REGKEY, StringHelper.encrypt(unregStudent.getKey()),
+                Const.ParamsNames.REGKEY, unregStudent.getEncryptedKey(),
         };
 
         action = getAction(submissionParams);
@@ -287,7 +287,7 @@ public class GetStudentActionTest extends BaseActionTest<GetStudentAction> {
 
         submissionParams = new String[] {
                 Const.ParamsNames.COURSE_ID, unregStudent.getCourse(),
-                Const.ParamsNames.REGKEY, StringHelper.encrypt(unregStudent.getKey()),
+                Const.ParamsNames.REGKEY, unregStudent.getEncryptedKey(),
         };
 
         verifyAccessibleForUnregisteredUsers(submissionParams);

@@ -12,7 +12,7 @@ import teammates.common.util.SanitizationHelper;
 import teammates.storage.entity.FeedbackResponseComment;
 
 /**
- * Represents a data transfer object for {@link FeedbackResponseComment} entities.
+ * The data transfer object for {@link FeedbackResponseComment} entities.
  */
 public class FeedbackResponseCommentAttributes extends EntityAttributes<FeedbackResponseComment> {
 
@@ -51,6 +51,9 @@ public class FeedbackResponseCommentAttributes extends EntityAttributes<Feedback
         isCommentFromFeedbackParticipant = false;
     }
 
+    /**
+     * Gets the {@link FeedbackResponseCommentAttributes} instance of the given {@link FeedbackResponseComment}.
+     */
     public static FeedbackResponseCommentAttributes valueOf(FeedbackResponseComment comment) {
         FeedbackResponseCommentAttributes frca = new FeedbackResponseCommentAttributes();
         frca.courseId = comment.getCourseId();
@@ -99,6 +102,9 @@ public class FeedbackResponseCommentAttributes extends EntityAttributes<Feedback
         return new Builder();
     }
 
+    /**
+     * Returns true if the response comment is visible to the given participant type.
+     */
     public boolean isVisibleTo(FeedbackParticipantType viewerType) {
         return showCommentTo.contains(viewerType);
     }
@@ -155,8 +161,16 @@ public class FeedbackResponseCommentAttributes extends EntityAttributes<Feedback
         this.feedbackQuestionId = feedbackQuestionId;
     }
 
+    public void setShowCommentTo(List<FeedbackParticipantType> showCommentTo) {
+        this.showCommentTo = showCommentTo;
+    }
+
     public List<FeedbackParticipantType> getShowCommentTo() {
         return showCommentTo;
+    }
+
+    public void setShowGiverNameTo(List<FeedbackParticipantType> showGiverNameTo) {
+        this.showGiverNameTo = showGiverNameTo;
     }
 
     public List<FeedbackParticipantType> getShowGiverNameTo() {

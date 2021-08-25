@@ -310,8 +310,8 @@ public class StudentsLogicTest extends BaseLogicTest {
         StudentAttributes student1InCourse1 = dataBundle.students.get("student1InCourse1");
         String course1Id = dataBundle.courses.get("typicalCourse1").getId();
         String studentKey = studentsLogic.getStudentForCourseIdAndGoogleId(
-                course1Id, student1InCourse1.getGoogleId()).getKey();
-        StudentAttributes actualStudent = studentsLogic.getStudentForRegistrationKey(StringHelper.encrypt(studentKey));
+                course1Id, student1InCourse1.getGoogleId()).getEncryptedKey();
+        StudentAttributes actualStudent = studentsLogic.getStudentForRegistrationKey(studentKey);
         assertEquals(student1InCourse1.getGoogleId(), actualStudent.getGoogleId());
     }
 
@@ -493,7 +493,7 @@ public class StudentsLogicTest extends BaseLogicTest {
     }
 
     @Test
-    public void testDeleteStudentCascade_lastPersonInTeam_shouldDeleteTeamResponses() throws Exception {
+    public void testDeleteStudentCascade_lastPersonInTeam_shouldDeleteTeamResponses() {
         StudentAttributes student1InCourse2 = dataBundle.students.get("student1InCourse2");
         StudentAttributes student2InCourse2 = dataBundle.students.get("student2InCourse2");
         // they are in the same team

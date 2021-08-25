@@ -5,14 +5,12 @@ import java.util.List;
 import org.apache.http.HttpStatus;
 import org.testng.annotations.Test;
 
-import teammates.common.datatransfer.UserRole;
 import teammates.common.datatransfer.attributes.CourseAttributes;
 import teammates.common.datatransfer.attributes.FeedbackSessionAttributes;
 import teammates.common.datatransfer.attributes.InstructorAttributes;
 import teammates.common.datatransfer.attributes.StudentAttributes;
 import teammates.common.util.Const;
 import teammates.common.util.JsonUtils;
-import teammates.common.util.StringHelper;
 import teammates.ui.output.SessionResultsData;
 import teammates.ui.request.Intent;
 
@@ -33,7 +31,7 @@ public class GetSessionResultsActionTest extends BaseActionTest<GetSessionResult
 
     @Override
     @Test
-    protected void testExecute() throws Exception {
+    protected void testExecute() {
         InstructorAttributes instructorAttributes = typicalBundle.instructors.get("instructor1OfCourse1");
         loginAsInstructor(instructorAttributes.getGoogleId());
 
@@ -43,7 +41,7 @@ public class GetSessionResultsActionTest extends BaseActionTest<GetSessionResult
         String[] submissionParams = new String[] {
                 Const.ParamsNames.FEEDBACK_SESSION_NAME, accessibleFeedbackSession.getFeedbackSessionName(),
                 Const.ParamsNames.COURSE_ID, accessibleFeedbackSession.getCourseId(),
-                Const.ParamsNames.INTENT, Intent.INSTRUCTOR_RESULT.name(),
+                Const.ParamsNames.INTENT, Intent.FULL_DETAIL.name(),
         };
 
         GetSessionResultsAction a = getAction(submissionParams);
@@ -54,10 +52,10 @@ public class GetSessionResultsActionTest extends BaseActionTest<GetSessionResult
         SessionResultsData output = (SessionResultsData) r.getOutput();
 
         SessionResultsData expectedResults = SessionResultsData.initForInstructor(
-                logic.getSessionResultsForUser(accessibleFeedbackSession.getFeedbackSessionName(),
+                logic.getSessionResultsForCourse(accessibleFeedbackSession.getFeedbackSessionName(),
                         accessibleFeedbackSession.getCourseId(),
                         instructorAttributes.getEmail(),
-                        UserRole.INSTRUCTOR, null, null));
+                        null, null));
 
         assertTrue(isSessionResultsDataEqual(expectedResults, output));
 
@@ -82,7 +80,7 @@ public class GetSessionResultsActionTest extends BaseActionTest<GetSessionResult
                 logic.getSessionResultsForUser(accessibleFeedbackSession.getFeedbackSessionName(),
                         accessibleFeedbackSession.getCourseId(),
                         studentAttributes.getEmail(),
-                        UserRole.STUDENT, null, null),
+                        false, null),
                 studentAttributes);
 
         assertTrue(isSessionResultsDataEqual(expectedResults, output));
@@ -187,7 +185,7 @@ public class GetSessionResultsActionTest extends BaseActionTest<GetSessionResult
     }
 
     @Test
-    public void testAccessControl_withRegistrationKey_shouldPass() {
+    public void testAccessControl_withRegistrationKey_shouldPass() throws Exception {
         CourseAttributes typicalCourse1 = typicalBundle.courses.get("typicalCourse1");
         FeedbackSessionAttributes feedbackSessionAttributes = typicalBundle.feedbackSessions.get("session1InCourse1");
         StudentAttributes student1 = typicalBundle.students.get("student1InCourse1");
@@ -197,15 +195,15 @@ public class GetSessionResultsActionTest extends BaseActionTest<GetSessionResult
                 Const.ParamsNames.COURSE_ID, typicalCourse1.getId(),
                 Const.ParamsNames.FEEDBACK_SESSION_NAME, feedbackSessionAttributes.getFeedbackSessionName(),
                 Const.ParamsNames.INTENT, Intent.STUDENT_RESULT.toString(),
-                Const.ParamsNames.REGKEY, StringHelper.encrypt(student1.getKey()),
+                Const.ParamsNames.REGKEY, student1.getEncryptedKey(),
         };
 
-        publishSession(feedbackSessionAttributes.getFeedbackSessionName(), typicalCourse1.getId());
+        logic.publishFeedbackSession(feedbackSessionAttributes.getFeedbackSessionName(), typicalCourse1.getId());
         verifyAccessibleForUnregisteredUsers(submissionParams);
     }
 
     @Test
-    public void testAccessControl_withoutCorrectAuthInfoAccessStudentResult_shouldFail() {
+    public void testAccessControl_withoutCorrectAuthInfoAccessStudentResult_shouldFail() throws Exception {
         CourseAttributes typicalCourse1 = typicalBundle.courses.get("typicalCourse1");
         FeedbackSessionAttributes feedbackSessionAttributes = typicalBundle.feedbackSessions.get("session1InCourse1");
 
@@ -215,12 +213,12 @@ public class GetSessionResultsActionTest extends BaseActionTest<GetSessionResult
                 Const.ParamsNames.INTENT, Intent.STUDENT_RESULT.toString(),
         };
 
-        publishSession(feedbackSessionAttributes.getFeedbackSessionName(), typicalCourse1.getId());
+        logic.publishFeedbackSession(feedbackSessionAttributes.getFeedbackSessionName(), typicalCourse1.getId());
         verifyInaccessibleForUnregisteredUsers(submissionParams);
     }
 
     @Test
-    public void testAccessControl_studentAccessOwnCourseSessionResult_shouldPass() {
+    public void testAccessControl_studentAccessOwnCourseSessionResult_shouldPass() throws Exception {
         StudentAttributes student1InCourse1 = typicalBundle.students.get("student1InCourse1");
         CourseAttributes typicalCourse1 = typicalBundle.courses.get("typicalCourse1");
         FeedbackSessionAttributes feedbackSessionAttributes = typicalBundle.feedbackSessions.get("session1InCourse1");
@@ -231,7 +229,7 @@ public class GetSessionResultsActionTest extends BaseActionTest<GetSessionResult
                 Const.ParamsNames.INTENT, Intent.STUDENT_RESULT.toString(),
         };
 
-        publishSession(feedbackSessionAttributes.getFeedbackSessionName(), typicalCourse1.getId());
+        logic.publishFeedbackSession(feedbackSessionAttributes.getFeedbackSessionName(), typicalCourse1.getId());
         loginAsStudent(student1InCourse1.getGoogleId());
         verifyCanAccess(submissionParams);
     }
@@ -252,7 +250,7 @@ public class GetSessionResultsActionTest extends BaseActionTest<GetSessionResult
     }
 
     @Test
-    public void testAccessControl_accessStudentSessionResultWithMasqueradeMode_shouldPass() {
+    public void testAccessControl_accessStudentSessionResultWithMasqueradeMode_shouldPass() throws Exception {
         StudentAttributes student1InCourse1 = typicalBundle.students.get("student1InCourse1");
         CourseAttributes typicalCourse1 = typicalBundle.courses.get("typicalCourse1");
         FeedbackSessionAttributes feedbackSessionAttributes = typicalBundle.feedbackSessions.get("session1InCourse1");
@@ -262,7 +260,7 @@ public class GetSessionResultsActionTest extends BaseActionTest<GetSessionResult
                 Const.ParamsNames.INTENT, Intent.STUDENT_RESULT.toString(),
         };
 
-        publishSession(feedbackSessionAttributes.getFeedbackSessionName(), typicalCourse1.getId());
+        logic.publishFeedbackSession(feedbackSessionAttributes.getFeedbackSessionName(), typicalCourse1.getId());
         loginAsAdmin();
         verifyCanMasquerade(student1InCourse1.getGoogleId(), submissionParams);
     }
@@ -301,11 +299,4 @@ public class GetSessionResultsActionTest extends BaseActionTest<GetSessionResult
         verifyOnlyInstructorsOfTheSameCourseCanAccess(submissionParams);
     }
 
-    private void publishSession(String feedbackSessionName, String courseId) {
-        try {
-            logic.publishFeedbackSession(feedbackSessionName, courseId);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 }
