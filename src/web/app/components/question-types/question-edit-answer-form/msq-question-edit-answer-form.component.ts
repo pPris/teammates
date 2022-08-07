@@ -21,6 +21,8 @@ export class MsqQuestionEditAnswerFormComponent
 
   readonly NO_VALUE: number = NO_VALUE;
   isMsqOptionSelected: boolean[] = [];
+  lastSelectedOptionIdx: number = -1; // reset to -1 if other option or none of the above was selected
+  isLastActionSelect: boolean = false;
 
   @ViewChild('inputTextBoxOther') inputTextBoxOther?: ElementRef;
 
@@ -48,17 +50,57 @@ export class MsqQuestionEditAnswerFormComponent
   /**
    * Updates the answers to include/exclude the Msq option specified by the index.
    */
-  updateSelectedAnswers(index: number): void {
+  updateSelectedAnswers(index: number, $event: KeyboardEvent): void {
     let newAnswers: string[] = [];
+
     if (!this.isNoneOfTheAboveEnabled) {
       newAnswers = this.responseDetails.answers.slice();
     }
-    const indexInResponseArray: number = this.responseDetails.answers.indexOf(this.questionDetails.msqChoices[index]);
-    if (indexInResponseArray > -1) {
-      newAnswers.splice(indexInResponseArray, 1);
-    } else {
-      newAnswers.unshift(this.questionDetails.msqChoices[index]);
+
+    const selectedIndexInResponseArray: number = this.responseDetails.answers.indexOf(this.questionDetails.msqChoices[index]); // determines if select or deselect // should change this to a boolean so logic is clearer
+
+    const isCurrActionSelect = (selectedIndexInResponseArray === -1);
+
+    // src: https://stackoverflow.com/questions/37078709/angular-2-check-if-shift-key-is-down-when-an-element-is-clicked?rq=1
+
+    /* to keep things simple, we enable shift select functionality only when
+    previous action and curr action are both select or are both deselect */
+    if ($event.shiftKey && (this.isLastActionSelect === isCurrActionSelect)) {
+        let i = Math.min(index, this.lastSelectedOptionIdx),
+            l = Math.max(index, this.lastSelectedOptionIdx);
+
+        if (isCurrActionSelect) {
+            for (; i <= l; i++) {
+                if (i === this.lastSelectedOptionIdx) continue; // without this you're double performing the last action
+
+                if (this.responseDetails.answers.indexOf(this.questionDetails.msqChoices[i]) !== -1) continue; // without this you will be double selecting an item
+
+                newAnswers.unshift(this.questionDetails.msqChoices[i]);
+            }
+            this.isLastActionSelect = true;
+        } else {
+            for (let j; i <= l; i++) {
+                if (i === this.lastSelectedOptionIdx) continue; // without this you're double performing the last action
+                j = this.responseDetails.answers.indexOf(this.questionDetails.msqChoices[i])
+
+                if (j === -1) continue; // an option in the middle of this loop might already have been deselected. without this if, you'll be deselecting a random item at the end of the array.
+
+                newAnswers.splice(j, 1);
+            }
+            this.isLastActionSelect = false;
+        }
+    } else { // no shift key functionality. i.e. perform the operations for one individual msqChoice
+        if (isCurrActionSelect) {
+            newAnswers.unshift(this.questionDetails.msqChoices[index]);
+            this.isLastActionSelect = true;
+        } else {
+            // remove corresponding response text
+            newAnswers.splice(selectedIndexInResponseArray, 1);
+            this.isLastActionSelect = false;
+        }
     }
+
+    this.lastSelectedOptionIdx = index;
 
     this.triggerResponseDetailsChange('answers', newAnswers);
   }
@@ -81,9 +123,10 @@ export class MsqQuestionEditAnswerFormComponent
       }, 0);
     } else {
       // remove other answer (last element) from the answer list
-      fieldsToUpdate.answers.splice(-1, 1);
+      fieldsToUpdate.answers.splice(-1, 1); // what is happening here? does the answer list have a restricted number of elements
       fieldsToUpdate.otherFieldContent = '';
     }
+    this.lastSelectedOptionIdx = -1;
     this.triggerResponseDetailsChangeBatch(fieldsToUpdate);
   }
 
@@ -111,6 +154,7 @@ export class MsqQuestionEditAnswerFormComponent
    * Updates answers if None of the Above option is selected.
    */
   updateNoneOfTheAbove(): void {
+    this.lastSelectedOptionIdx = -1;
     this.triggerResponseDetailsChangeBatch({
       answers: this.isNoneOfTheAboveEnabled ? [] : [MSQ_ANSWER_NONE_OF_THE_ABOVE],
       isOther: false,
